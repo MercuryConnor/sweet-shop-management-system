@@ -4,10 +4,10 @@
  */
 
 export * as authService from "./authService"
+export * as sweetsService from "./sweetsService"
 
 /**
  * Future services to implement:
- * - sweetsService: Fetch sweets, search, filter
  * - cartService: Cart operations
  * - adminService: Admin operations
  * - ordersService: Order management
