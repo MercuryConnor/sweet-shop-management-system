@@ -15,7 +15,10 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     existing = crud.get_user_by_username(db, username=user_in.username)
     if existing:
         raise HTTPException(status_code=400, detail="Username already registered")
-    user = crud.create_user(db, user=user_in)
+    
+    # Mark users with "admin" in username as admin
+    is_admin = "admin" in user_in.username.lower()
+    user = crud.create_user(db, user=user_in, is_admin=is_admin)
     return user
 
 
@@ -72,3 +75,29 @@ def search_sweets(
         skip=skip,
         limit=limit
     )
+
+
+# Inventory Routes
+@app.post("/api/sweets/{sweet_id}/purchase", response_model=schemas.SweetResponse)
+def purchase_sweet(sweet_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    """Purchase a sweet by decreasing its quantity by 1. Requires authentication."""
+    sweet, error = crud.purchase_sweet(db=db, sweet_id=sweet_id)
+    if error == "not_found":
+        raise HTTPException(status_code=404, detail="Sweet not found")
+    elif error == "out_of_stock":
+        raise HTTPException(status_code=400, detail="Out of stock")
+    return sweet
+
+
+@app.post("/api/sweets/{sweet_id}/restock", response_model=schemas.SweetResponse)
+def restock_sweet(
+    sweet_id: int,
+    restock_in: schemas.RestockRequest,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    """Restock a sweet. Requires admin authorization."""
+    sweet, error = crud.restock_sweet(db=db, sweet_id=sweet_id, quantity=restock_in.quantity)
+    if error == "not_found":
+        raise HTTPException(status_code=404, detail="Sweet not found")
+    return sweet

@@ -45,6 +45,10 @@ class SweetCreate(BaseModel):
     quantity: int = Field(..., ge=0)
 
 
+class RestockRequest(BaseModel):
+    quantity: int = Field(..., ge=0)
+
+
 class SweetResponse(BaseModel):
     id: int
     name: str

@@ -8,8 +8,8 @@ def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 
-def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(username=user.username, hashed_password=get_password_hash(user.password), full_name=user.full_name)
+def create_user(db: Session, user: schemas.UserCreate, is_admin: bool = False):
+    db_user = models.User(username=user.username, hashed_password=get_password_hash(user.password), full_name=user.full_name, is_admin=is_admin)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -75,3 +75,42 @@ def search_sweets(
         query = query.filter(models.Sweet.price <= max_price)
     
     return query.offset(skip).limit(limit).all()
+
+
+# Inventory operations
+def purchase_sweet(db: Session, sweet_id: int):
+    """
+    Purchase a sweet by decreasing its quantity by 1.
+    Returns:
+        (sweet, None) - on success
+        (None, "not_found") - if sweet doesn't exist
+        (None, "out_of_stock") - if quantity is 0
+    """
+    sweet = db.query(models.Sweet).filter(models.Sweet.id == sweet_id).first()
+    if not sweet:
+        return None, "not_found"
+    
+    if sweet.quantity <= 0:
+        return None, "out_of_stock"
+    
+    sweet.quantity -= 1
+    db.commit()
+    db.refresh(sweet)
+    return sweet, None
+
+
+def restock_sweet(db: Session, sweet_id: int, quantity: int):
+    """
+    Restock a sweet by increasing its quantity by the given amount.
+    Returns:
+        (sweet, None) - on success
+        (None, "not_found") - if sweet doesn't exist
+    """
+    sweet = db.query(models.Sweet).filter(models.Sweet.id == sweet_id).first()
+    if not sweet:
+        return None, "not_found"
+    
+    sweet.quantity += quantity
+    db.commit()
+    db.refresh(sweet)
+    return sweet, None
