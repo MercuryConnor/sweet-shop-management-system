@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from .db.session import engine, Base, get_db
 from . import models, schemas, crud, auth
 
@@ -18,8 +19,15 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     
     # Mark users with "admin" in username as admin
     is_admin = "admin" in user_in.username.lower()
-    user = crud.create_user(db, user=user_in, is_admin=is_admin)
-    return user
+    
+    try:
+        user = crud.create_user(db, user=user_in, is_admin=is_admin)
+        return user
+    except IntegrityError:
+        # Handle race condition: concurrent registration with same username
+        # Database constraint prevents duplication; rollback and return proper error
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Username already registered")
 
 
 @app.post("/api/auth/login", response_model=schemas.Token)

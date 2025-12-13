@@ -81,12 +81,17 @@ def search_sweets(
 def purchase_sweet(db: Session, sweet_id: int):
     """
     Purchase a sweet by decreasing its quantity by 1.
+    Uses pessimistic row-level locking to prevent overselling under concurrent load.
     Returns:
         (sweet, None) - on success
         (None, "not_found") - if sweet doesn't exist
         (None, "out_of_stock") - if quantity is 0
     """
-    sweet = db.query(models.Sweet).filter(models.Sweet.id == sweet_id).first()
+    # Acquire exclusive row lock to serialize concurrent purchases
+    sweet = db.query(models.Sweet).filter(
+        models.Sweet.id == sweet_id
+    ).with_for_update().first()
+    
     if not sweet:
         return None, "not_found"
     
@@ -102,11 +107,16 @@ def purchase_sweet(db: Session, sweet_id: int):
 def restock_sweet(db: Session, sweet_id: int, quantity: int):
     """
     Restock a sweet by increasing its quantity by the given amount.
+    Uses pessimistic row-level locking to ensure consistency under concurrent operations.
     Returns:
         (sweet, None) - on success
         (None, "not_found") - if sweet doesn't exist
     """
-    sweet = db.query(models.Sweet).filter(models.Sweet.id == sweet_id).first()
+    # Acquire exclusive row lock to prevent lost updates during concurrent restock/purchase
+    sweet = db.query(models.Sweet).filter(
+        models.Sweet.id == sweet_id
+    ).with_for_update().first()
+    
     if not sweet:
         return None, "not_found"
     
