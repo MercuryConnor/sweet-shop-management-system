@@ -18,33 +18,37 @@ export default function SweetCard({ sweet, onPurchase, isLoading = false, error 
   }
 
   return (
-    <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+    <div className="bg-white border border-primary-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col">
       {/* Image placeholder with category badge */}
-      <div className="bg-gradient-to-br from-sweet-light to-sweet-medium h-40 relative overflow-hidden">
-        <div className="absolute top-2 right-2 bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+      <div className="bg-gradient-to-br from-primary-100 via-primary-50 to-white h-48 relative overflow-hidden flex-shrink-0">
+        <div className="absolute top-3 right-3 bg-primary-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm">
           {sweet.category}
         </div>
         {/* Emoji icon for visual appeal */}
-        <div className="flex items-center justify-center h-full text-5xl">
+        <div className="flex items-center justify-center h-full text-6xl">
           {getCategoryEmoji(sweet.category)}
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-5 space-y-4 flex-1 flex flex-col">
         {/* Name and price */}
-        <div>
+        <div className="space-y-2">
           <h3 className="font-semibold text-neutral-900 text-lg line-clamp-2">
             {sweet.name}
           </h3>
-          <p className="text-primary-600 font-bold text-xl mt-1">
+          <p className="text-primary-600 font-bold text-2xl">
             {formatPrice(sweet.price)}
           </p>
         </div>
 
-        {/* Stock status */}
-        <div className="flex items-center justify-between text-sm">
-          <span className={`font-medium ${isOutOfStock ? "text-red-600" : "text-green-600"}`}>
+        {/* Stock status badge */}
+        <div className="flex items-center gap-2">
+          <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+            isOutOfStock
+              ? "bg-red-100 text-red-700"
+              : "bg-mint-100 text-mint-700"
+          }`}>
             {isOutOfStock ? "Out of Stock" : `${sweet.quantity} in stock`}
           </span>
         </div>
@@ -56,12 +60,12 @@ export default function SweetCard({ sweet, onPurchase, isLoading = false, error 
         <button
           onClick={handleClick}
           disabled={isOutOfStock || isLoading}
-          className={`w-full py-2 px-3 rounded-lg font-medium text-sm transition-colors ${
+          className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all duration-200 mt-auto ${
             isOutOfStock
               ? "bg-neutral-100 text-neutral-400 cursor-not-allowed"
               : isLoading
-                ? "bg-primary-500 text-white cursor-wait"
-                : "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800"
+                ? "bg-primary-500 text-white cursor-wait shadow-sm"
+                : "bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow-md"
           }`}
         >
           {isLoading ? "Purchasing..." : isOutOfStock ? "Out of Stock" : "Purchase"}

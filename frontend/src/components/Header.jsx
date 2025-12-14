@@ -25,7 +25,7 @@ export default function Header() {
   ]
 
   return (
-    <header className="bg-white border-b border-neutral-200 shadow-sm sticky top-0 z-50">
+    <header className="bg-gradient-to-r from-primary-50 to-white border-b border-primary-100 shadow-sm sticky top-0 z-50">
       <Container>
         <div className="flex justify-between items-center py-4">
           {/* Brand */}

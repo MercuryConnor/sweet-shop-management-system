@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react"
-import { Container, Button, Input, SweetCard, SkeletonCard } from "../components"
+import { Container, Button, Input, SweetCard, SkeletonCard, Section } from "../components"
 import { sweetsService } from "../services"
 import { useToast } from "../hooks"
 import { formatPrice } from "../utils"
@@ -88,25 +88,27 @@ export default function DashboardPage() {
 
   return (
     <Container size="xl">
-      <div className="py-8 space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold text-neutral-900">Sweet Shop</h1>
-          <p className="text-neutral-600 mt-2">Browse and purchase your favorite sweets</p>
+      <div className="py-8 md:py-12 space-y-8">
+        {/* Page Header */}
+        <div className="space-y-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-neutral-900">🍰 Sweet Shop</h1>
+          <p className="text-neutral-600 text-lg">Browse and purchase your favorite sweets</p>
         </div>
 
+        {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex justify-between items-center">
-              <p className="text-red-700 text-sm">{error}</p>
-              <button onClick={loadSweets} className="text-red-600 hover:text-red-700 font-medium text-sm underline">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+            <div className="flex justify-between items-center gap-4">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+              <button onClick={loadSweets} className="text-red-600 hover:text-red-700 font-medium text-sm underline flex-shrink-0">
                 Try Again
               </button>
             </div>
           </div>
         )}
 
-        <div className="bg-white border border-neutral-200 rounded-lg p-6 space-y-6">
-          <h2 className="text-lg font-semibold text-neutral-900">Filters</h2>
+        {/* Filters Section */}
+        <Section title="Filters" subtitle="Refine your search">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               type="text"
@@ -120,7 +122,7 @@ export default function DashboardPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="w-full px-4 py-2.5 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white"
               >
                 <option value="all">All Categories</option>
                 {categories.map((cat) => (
@@ -131,9 +133,9 @@ export default function DashboardPage() {
               </select>
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm font-medium text-neutral-700 block">
-              Price Range: {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+              Price Range: <span className="text-primary-600 font-semibold">{formatPrice(priceRange[0])} – {formatPrice(priceRange[1])}</span>
             </label>
             <div className="flex gap-4 items-center">
               <input
@@ -145,7 +147,7 @@ export default function DashboardPage() {
                   const newMin = Math.min(Number(e.target.value), priceRange[1])
                   setPriceRange([newMin, priceRange[1]])
                 }}
-                className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer"
+                className="flex-1 h-2.5 bg-primary-100 rounded-full appearance-none cursor-pointer accent-primary-600"
               />
               <input
                 type="range"
@@ -156,7 +158,7 @@ export default function DashboardPage() {
                   const newMax = Math.max(Number(e.target.value), priceRange[0])
                   setPriceRange([priceRange[0], newMax])
                 }}
-                className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer"
+                className="flex-1 h-2.5 bg-primary-100 rounded-full appearance-none cursor-pointer accent-primary-600"
               />
             </div>
           </div>
@@ -169,54 +171,63 @@ export default function DashboardPage() {
                 setPriceRange([0, maxPrice])
               }}
             >
-              Reset Filters
+              🔄 Reset Filters
             </Button>
           )}
-        </div>
+        </Section>
 
         {!isLoading && (
-          <div className="text-neutral-600">
-            Showing <span className="font-semibold">{filteredSweets.length}</span> of <span className="font-semibold">{sweets.length}</span> sweets
+          <div className="text-sm font-medium text-neutral-600">
+            Showing <span className="text-primary-700 font-bold">{filteredSweets.length}</span> of <span className="text-neutral-700 font-bold">{sweets.length}</span> sweets
           </div>
         )}
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
+          <Section title="Products" subtitle="Loading...">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          </Section>
         ) : filteredSweets.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-neutral-500 text-lg">
-              {sweets.length === 0 ? "No sweets available" : "No sweets match your filters"}
-            </p>
-            {sweets.length > 0 && (
-              <Button
-                variant="primary"
-                onClick={() => {
-                  setSearchQuery("")
-                  setSelectedCategory("all")
-                  setPriceRange([0, maxPrice])
-                }}
-                className="mt-4"
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
+          <Section title="Products">
+            <div className="py-12 text-center">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-3">No sweets found</h3>
+              <p className="text-neutral-600 mb-8">
+                {sweets.length === 0
+                  ? "No sweets available yet. Check back soon!"
+                  : "Try adjusting your filters to find what you're looking for."}
+              </p>
+              {sweets.length > 0 && (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedCategory("all")
+                    setPriceRange([0, maxPrice])
+                  }}
+                >
+                  🔄 Clear All Filters
+                </Button>
+              )}
+            </div>
+          </Section>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredSweets.map((sweet) => (
-              <SweetCard
-                key={sweet.id}
-                sweet={sweet}
-                onPurchase={handlePurchase}
-                isLoading={purchasingId === sweet.id}
-                error={purchaseErrors[sweet.id] || ""}
-              />
-            ))}
-          </div>
+          <Section title="Products" subtitle={`${filteredSweets.length} sweet${filteredSweets.length !== 1 ? 's' : ''} available`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredSweets.map((sweet) => (
+                <SweetCard
+                  key={sweet.id}
+                  sweet={sweet}
+                  onPurchase={handlePurchase}
+                  isLoading={purchasingId === sweet.id}
+                  error={purchaseErrors[sweet.id] || ""}
+                />
+              ))}
+            </div>
+          </Section>
         )}
       </div>
     </Container>
