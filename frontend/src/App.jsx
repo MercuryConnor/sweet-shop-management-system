@@ -1,7 +1,7 @@
 import React from "react"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { AppLayout, ProtectedRoute } from "./components"
-import { AuthProvider } from "./context"
+import { AuthProvider, ToastProvider } from "./context"
 import {
   HomePage,
   LoginPage,
@@ -11,13 +11,14 @@ import {
 } from "./pages"
 
 /**
- * Main App component with routing and auth provider
+ * Main App component with routing and providers
  */
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppLayout>
+      <ToastProvider>
+        <Router>
+          <AppLayout>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -55,6 +56,7 @@ export default function App() {
           </Routes>
         </AppLayout>
       </Router>
+      </ToastProvider>
     </AuthProvider>
   )
 }

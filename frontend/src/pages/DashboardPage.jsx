@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { Container, Button, Input, SweetCard, SkeletonCard } from "../components"
 import { sweetsService } from "../services"
+import { useToast } from "../hooks"
 import { formatPrice } from "../utils"
 
 /**
  * DashboardPage - Sweet browsing and purchasing UI
  */
 export default function DashboardPage() {
+  const toast = useToast()
   const [sweets, setSweets] = useState([])
   const [filteredSweets, setFilteredSweets] = useState([])
   const [categories, setCategories] = useState([])
@@ -15,7 +17,6 @@ export default function DashboardPage() {
   const [error, setError] = useState(null)
 
   const [purchasingId, setPurchasingId] = useState(null)
-  const [purchaseSuccess, setPurchaseSuccess] = useState(null)
   const [purchaseErrors, setPurchaseErrors] = useState({})
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -75,8 +76,7 @@ export default function DashboardPage() {
     try {
       await sweetsService.purchaseSweet(sweetId, 1)
       setSweets((prev) => prev.map((s) => (s.id === sweetId ? { ...s, quantity: Math.max(0, s.quantity - 1) } : s)))
-      setPurchaseSuccess("Successfully purchased! 🎉")
-      setTimeout(() => setPurchaseSuccess(null), 3000)
+      toast.success("Purchase successful! 🎉")
     } catch (err) {
       setPurchaseErrors((prev) => ({ ...prev, [sweetId]: err.message }))
     } finally {
@@ -93,12 +93,6 @@ export default function DashboardPage() {
           <h1 className="text-4xl font-bold text-neutral-900">Sweet Shop</h1>
           <p className="text-neutral-600 mt-2">Browse and purchase your favorite sweets</p>
         </div>
-
-        {purchaseSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-700 text-sm font-medium">{purchaseSuccess}</p>
-          </div>
-        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">

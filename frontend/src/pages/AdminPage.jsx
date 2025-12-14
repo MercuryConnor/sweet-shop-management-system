@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import { Container, Button, Input } from "../components"
 import { sweetsService } from "../services"
-import { useAuth } from "../hooks"
+import { useAuth, useToast } from "../hooks"
 import { formatPrice } from "../utils"
 
 /**
@@ -10,12 +10,12 @@ import { formatPrice } from "../utils"
  */
 export default function AdminPage() {
   const { user } = useAuth()
+  const toast = useToast()
   const [sweets, setSweets] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [restockQuantities, setRestockQuantities] = useState({})
   const [restockingId, setRestockingId] = useState(null)
-  const [restockSuccess, setRestockSuccess] = useState(null)
   const [restockErrors, setRestockErrors] = useState({})
 
   useEffect(() => {
@@ -72,14 +72,12 @@ export default function AdminPage() {
           sweet.id === sweetId ? { ...sweet, quantity: updatedSweet.quantity } : sweet
         )
       )
-
       // Clear input and show success
       setRestockQuantities((prev) => ({
         ...prev,
         [sweetId]: 0,
       }))
-      setRestockSuccess(`Restocked ${updatedSweet.name} successfully! ✅`)
-      setTimeout(() => setRestockSuccess(null), 3000)
+      toast.success(`Restocked ${updatedSweet.name} successfully! ✅`)
     } catch (err) {
       setRestockErrors((prev) => ({
         ...prev,
@@ -136,13 +134,6 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
-
-        {/* Success feedback */}
-        {restockSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-700 text-sm font-medium">{restockSuccess}</p>
-          </div>
-        )}
 
         {/* Error loading sweets */}
         {error && (

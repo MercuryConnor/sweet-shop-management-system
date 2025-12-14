@@ -1,5 +1,6 @@
 // Custom hooks
 export { useAuth } from "./useAuth"
+export { useToast } from "./useToast"
 
 /**
  * Future hooks to implement:
