@@ -73,8 +73,36 @@ export const purchaseSweet = async (sweetId, quantity = 1) => {
   }
 }
 
+/**
+ * Restock a sweet (admin only)
+ * Requires admin authentication
+ * @param {number} sweetId - ID of the sweet to restock
+ * @param {number} quantity - Quantity to add to inventory
+ * @returns {Promise<Object>} Updated sweet object
+ * @throws {Error} If user is not admin (403) or sweet not found (404)
+ */
+export const restockSweet = async (sweetId, quantity) => {
+  try {
+    const response = await api.post(`/api/sweets/${sweetId}/restock`, {
+      quantity,
+    })
+    return response.data
+  } catch (error) {
+    if (error.response?.status === 403) {
+      throw new Error("Admin access required to restock")
+    } else if (error.response?.status === 404) {
+      throw new Error("Sweet not found")
+    } else if (error.response?.status === 422) {
+      const detail = error.response?.data?.detail
+      throw new Error(detail || "Invalid restock quantity")
+    }
+    throw new Error("Restock failed. Please try again.")
+  }
+}
+
 export default {
   fetchSweets,
   searchSweets,
   purchaseSweet,
+  restockSweet,
 }
