@@ -3,14 +3,16 @@
  */
 
 /**
- * Format price to USD
- * @param {number} price - Price in dollars
- * @returns {string} Formatted price string
+ * Format price to INR (whole rupees for display only)
+ * @param {number} price - Price value
+ * @returns {string} Formatted price string in ₹
  */
 export const formatPrice = (price) => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(price)
 }
 

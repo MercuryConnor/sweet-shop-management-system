@@ -13,6 +13,33 @@ import api from "./api"
  * @returns {Promise<Object>} User data with id, username, full_name
  * @throws {Error} If username already exists or validation fails
  */
+/**
+ * Login existing user
+ * Uses OAuth2PasswordRequestForm (form-urlencoded)
+ * @param {string} username
+ * @param {string} password
+ * @returns {Promise<Object>} Access token response
+ */
+export const loginUser = async (username, password) => {
+  try {
+    const formData = new URLSearchParams()
+    formData.append("username", username)
+    formData.append("password", password)
+
+    const response = await api.post("/api/auth/login", formData, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    })
+
+    return response.data
+  } catch (error) {
+    const message =
+      error.response?.data?.detail || "Invalid username or password"
+    throw new Error(message)
+  }
+}
+
 export const registerUser = async (username, password, fullName) => {
   try {
     const response = await api.post("/api/auth/register", {
@@ -35,21 +62,7 @@ export const registerUser = async (username, password, fullName) => {
  * @returns {Promise<Object>} Token object with access_token and token_type
  * @throws {Error} If credentials are invalid
  */
-export const loginUser = async (username, password) => {
-  try {
-    // Backend uses OAuth2PasswordRequestForm, which expects form data
-    const formData = new FormData()
-    formData.append("username", username)
-    formData.append("password", password)
 
-    const response = await api.post("/api/auth/login", formData)
-    return response.data
-  } catch (error) {
-    const message =
-      error.response?.data?.detail || "Login failed. Please try again."
-    throw new Error(message)
-  }
-}
 
 /**
  * Get current user info from token

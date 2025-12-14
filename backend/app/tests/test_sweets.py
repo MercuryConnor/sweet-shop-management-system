@@ -50,8 +50,26 @@ class TestSweetCreation:
         )
         assert response.status_code == 401
 
+    def test_create_sweet_requires_admin_role(self):
+        """Non-admin users should not be able to create sweets (403 Forbidden)."""
+        token = _get_auth_token("regularuser", "secret123")
+        headers = {"Authorization": f"Bearer {token}"}
+        
+        response = client.post(
+            "/api/sweets",
+            json={
+                "name": "Unauthorized Sweet",
+                "category": "candy",
+                "price": 1.99,
+                "quantity": 10
+            },
+            headers=headers
+        )
+        assert response.status_code == 403
+        assert response.json()["detail"] == "Not authorized"
+
     def test_create_sweet_success(self):
-        """Creating a sweet with valid JWT should succeed."""
+        """Creating a sweet with admin JWT should succeed."""
         token = _get_auth_token("admin1", "secret123")
         headers = {"Authorization": f"Bearer {token}"}
         
@@ -232,6 +250,73 @@ class TestSweetSearch:
         sweets = response.json()
         assert len(sweets) >= 1
         assert any("Chocolate" in s["name"] for s in sweets)
+
+
+class TestSweetUpdateAndDelete:
+    """Tests for updating price and deleting sweets."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
+        yield
+
+    def _create_admin_token(self):
+        return _get_auth_token("admin_update", "secret123")
+
+    def _create_regular_token(self):
+        return _get_auth_token("regular_update", "secret123")
+
+    def _create_sweet(self, name="Update Target", price=10.0, quantity=5):
+        admin_token = self._create_admin_token()
+        headers = {"Authorization": f"Bearer {admin_token}"}
+        response = client.post(
+            "/api/sweets",
+            json={"name": name, "category": "test", "price": price, "quantity": quantity},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        return response.json(), headers
+
+    def test_update_price_requires_admin(self):
+        sweet, _ = self._create_sweet()
+        user_token = self._create_regular_token()
+        response = client.put(
+            f"/api/sweets/{sweet['id']}",
+            json={"price": 25.0},
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert response.status_code == 403
+
+    def test_update_price_success(self):
+        sweet, headers = self._create_sweet(price=50.0)
+        response = client.put(
+            f"/api/sweets/{sweet['id']}",
+            json={"price": 99.0},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["price"] == 99.0
+
+    def test_delete_requires_admin(self):
+        sweet, _ = self._create_sweet()
+        user_token = self._create_regular_token()
+        response = client.delete(
+            f"/api/sweets/{sweet['id']}",
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert response.status_code == 403
+
+    def test_delete_success_removes_from_list(self):
+        sweet, headers = self._create_sweet()
+        delete_resp = client.delete(f"/api/sweets/{sweet['id']}", headers=headers)
+        assert delete_resp.status_code == 200
+
+        list_resp = client.get("/api/sweets")
+        assert list_resp.status_code == 200
+        ids = [s["id"] for s in list_resp.json()]
+        assert sweet["id"] not in ids
 
     def test_search_sweets_by_name_case_insensitive(self):
         """Name search should be case-insensitive."""

@@ -2,13 +2,33 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from .db.session import engine, Base, get_db
+from .db.session import engine, Base, get_db, SessionLocal
 from . import models, schemas, crud, auth
+from .seed import seed_sweets
+from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Sweet Shop API")
 
+
+@app.on_event("startup")
+def startup_seed():
+    db = SessionLocal()
+    try:
+        seed_sweets(db)
+    finally:
+        db.close()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Authentication Routes
 @app.post("/api/auth/register", response_model=schemas.UserOut)
@@ -52,8 +72,8 @@ def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db))
 
 # Sweet Routes
 @app.post("/api/sweets", response_model=schemas.SweetResponse)
-def create_sweet(sweet_in: schemas.SweetCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    """Create a new sweet. Requires authentication."""
+def create_sweet(sweet_in: schemas.SweetCreate, db: Session = Depends(get_db), current_admin: models.User = Depends(auth.get_current_admin)):
+    """Create a new sweet. Requires admin authorization."""
     return crud.create_sweet(db, sweet=sweet_in)
 
 
@@ -61,6 +81,33 @@ def create_sweet(sweet_in: schemas.SweetCreate, db: Session = Depends(get_db), c
 def list_sweets(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """List all sweets with pagination."""
     return crud.list_sweets(db, skip=skip, limit=limit)
+
+
+@app.put("/api/sweets/{sweet_id}", response_model=schemas.SweetResponse)
+def update_sweet_price(
+    sweet_id: int,
+    sweet_in: schemas.SweetUpdatePrice,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    """Update sweet price. Requires admin authorization."""
+    sweet, error = crud.update_sweet_price(db=db, sweet_id=sweet_id, price=sweet_in.price)
+    if error == "not_found":
+        raise HTTPException(status_code=404, detail="Sweet not found")
+    return sweet
+
+
+@app.delete("/api/sweets/{sweet_id}")
+def delete_sweet(
+    sweet_id: int,
+    db: Session = Depends(get_db),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    """Delete a sweet. Requires admin authorization."""
+    deleted, error = crud.delete_sweet(db=db, sweet_id=sweet_id)
+    if error == "not_found":
+        raise HTTPException(status_code=404, detail="Sweet not found")
+    return {"detail": "Sweet deleted"}
 
 
 @app.get("/api/sweets/search", response_model=list[schemas.SweetResponse])

@@ -49,6 +49,10 @@ class RestockRequest(BaseModel):
     quantity: int = Field(..., ge=0)
 
 
+class SweetUpdatePrice(BaseModel):
+    price: float = Field(..., gt=0.0)
+
+
 class SweetResponse(BaseModel):
     id: int
     name: str

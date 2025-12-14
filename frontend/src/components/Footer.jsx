@@ -1,4 +1,5 @@
 import React from "react"
+import { Link } from "react-router-dom"
 import Container from "./Container"
 
 /**
@@ -24,14 +25,14 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-neutral-400">
               <li>
-                <a href="/" className="hover:text-white transition-colors">
+                <Link to="/" className="hover:text-white transition-colors">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/dashboard" className="hover:text-white transition-colors">
+                <Link to="/dashboard" className="hover:text-white transition-colors">
                   Dashboard
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -41,14 +42,14 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-neutral-400">
               <li>
-                <a href="/" className="hover:text-white transition-colors">
+                <Link to="/contact" className="hover:text-white transition-colors">
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/" className="hover:text-white transition-colors">
+                <Link to="/support" className="hover:text-white transition-colors">
                   FAQ
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

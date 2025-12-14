@@ -34,8 +34,12 @@ def _get_auth_token(username: str, password: str) -> str:
     return response.json()["access_token"]
 
 
-def _create_sweet(name: str, quantity: int, token: str) -> dict:
-    """Helper to create a sweet and return its data."""
+def _create_sweet(name: str, quantity: int, admin_token: str = None) -> dict:
+    """Helper to create a sweet and return its data. Requires admin token."""
+    if admin_token is None:
+        # Create admin token if not provided
+        admin_token = _get_auth_token("testadmin", "secret123")
+    
     response = client.post(
         "/api/sweets",
         json={
@@ -44,7 +48,7 @@ def _create_sweet(name: str, quantity: int, token: str) -> dict:
             "price": 5.00,
             "quantity": quantity
         },
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {admin_token}"}
     )
     assert response.status_code == 200
     return response.json()
@@ -62,9 +66,8 @@ class TestPurchaseLogic:
 
     def test_purchase_requires_authentication(self):
         """Purchasing without auth should fail with 401."""
-        # Create a sweet without auth check (use a created sweet ID)
-        token = _get_auth_token("seller1", "secret123")
-        sweet = _create_sweet("Test Sweet", 10, token)
+        # Create a sweet with admin (for setup)
+        sweet = _create_sweet("Test Sweet", 10)
         
         # Try to purchase without auth
         response = client.post(f"/api/sweets/{sweet['id']}/purchase")
@@ -72,8 +75,7 @@ class TestPurchaseLogic:
 
     def test_purchase_success_decreases_quantity(self):
         """Purchasing a sweet with quantity > 0 should decrease quantity by 1."""
-        token = _get_auth_token("seller2", "secret123")
-        sweet = _create_sweet("Cupcake", 5, token)
+        sweet = _create_sweet("Cupcake", 5)
         initial_quantity = sweet["quantity"]
         
         # Purchase the sweet
@@ -90,8 +92,7 @@ class TestPurchaseLogic:
 
     def test_purchase_multiple_times(self):
         """Purchasing the same sweet multiple times should decrement each time."""
-        token = _get_auth_token("seller3", "secret123")
-        sweet = _create_sweet("Brownie", 3, token)
+        sweet = _create_sweet("Brownie", 3)
         
         buyer_token = _get_auth_token("buyer2", "secret123")
         
@@ -121,8 +122,7 @@ class TestPurchaseLogic:
 
     def test_purchase_fails_when_quantity_zero(self):
         """Purchasing when quantity is 0 should fail with 400."""
-        token = _get_auth_token("seller4", "secret123")
-        sweet = _create_sweet("Out of Stock", 0, token)
+        sweet = _create_sweet("Out of Stock", 0)
         
         buyer_token = _get_auth_token("buyer3", "secret123")
         response = client.post(
@@ -135,8 +135,7 @@ class TestPurchaseLogic:
 
     def test_purchase_fails_when_quantity_insufficient(self):
         """Attempting to purchase when quantity would go negative should fail."""
-        token = _get_auth_token("seller5", "secret123")
-        sweet = _create_sweet("Limited Sweet", 1, token)
+        sweet = _create_sweet("Limited Sweet", 1)
         
         buyer_token = _get_auth_token("buyer4", "secret123")
         
@@ -156,8 +155,7 @@ class TestPurchaseLogic:
 
     def test_purchase_returns_updated_sweet(self):
         """Purchase response should include all sweet fields."""
-        token = _get_auth_token("seller6", "secret123")
-        sweet = _create_sweet("Complete Sweet", 10, token)
+        sweet = _create_sweet("Complete Sweet", 10)
         
         buyer_token = _get_auth_token("buyer5", "secret123")
         response = client.post(
@@ -193,8 +191,7 @@ class TestRestockLogic:
 
     def test_restock_requires_authentication(self):
         """Restocking without auth should fail with 401."""
-        token = _get_auth_token("seller7", "secret123")
-        sweet = _create_sweet("Restock Test", 5, token)
+        sweet = _create_sweet("Restock Test", 5)
         
         # Try to restock without auth
         response = client.post(
@@ -205,8 +202,7 @@ class TestRestockLogic:
 
     def test_restock_requires_admin_role(self):
         """Restocking as a regular user should fail with 403 (Forbidden)."""
-        token = _get_auth_token("seller8", "secret123")
-        sweet = _create_sweet("Admin Only", 5, token)
+        sweet = _create_sweet("Admin Only", 5)
         
         # Regular user tries to restock
         user_token = _get_auth_token("regular_user1", "secret123")
@@ -385,3 +381,28 @@ class TestPurchaseAndRestockInteraction:
         )
         assert purchase_response.status_code == 200
         assert purchase_response.json()["quantity"] == 4
+
+
+class TestSweetDeletionVisibility:
+    """Ensure deleted sweets are not returned in listings."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
+        yield
+
+    def test_deleted_sweet_not_listed(self):
+        sweet = _create_sweet("DeleteMe", 5)
+        admin_token = _get_auth_token("admin_delete", "secret123")
+
+        delete_resp = client.delete(
+            f"/api/sweets/{sweet['id']}",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+        assert delete_resp.status_code == 200
+
+        list_resp = client.get("/api/sweets")
+        assert list_resp.status_code == 200
+        ids = [s["id"] for s in list_resp.json()]
+        assert sweet["id"] not in ids

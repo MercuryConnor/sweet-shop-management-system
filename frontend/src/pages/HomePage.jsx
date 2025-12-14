@@ -1,25 +1,36 @@
 import React from "react"
+import { useNavigate } from "react-router-dom"
 import { Container, Card, Button } from "../components"
+import { formatPrice } from "../utils"
 
 /**
  * Home page - Landing page for Sweet Shop
  */
 export default function HomePage() {
+  const navigate = useNavigate()
+
+  const handleBrowse = () => {
+    navigate("/dashboard", { state: { scrollTo: "products" } })
+  }
+
+  const handleLearnMore = () => {
+    navigate("/about")
+  }
+
   return (
     <Container>
       <div className="space-y-12">
         {/* Hero Section */}
         <div className="text-center space-y-6 py-12">
           <h1 className="text-4xl sm:text-5xl font-bold text-neutral-900">
-            Welcome to Sweet Shop
+            Handcrafted Indian Mithai, Delivered Fresh
           </h1>
           <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Discover the finest selection of delicious sweets, cakes, and confections
-            crafted with love and premium ingredients.
+            Celebrate every festival and family moment with rich, traditional sweets made in small batches with desi ghee and premium dry fruits.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button variant="primary">Browse Sweets</Button>
-            <Button variant="secondary">Learn More</Button>
+            <Button variant="primary" onClick={handleBrowse}>Browse Sweets</Button>
+            <Button variant="secondary" onClick={handleLearnMore}>Learn More</Button>
           </div>
         </div>
 
@@ -29,19 +40,19 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                name: "Chocolate Truffle",
-                category: "Chocolate",
-                price: 5.99,
+                name: "Gulab Jamun",
+                category: "Traditional",
+                price: 149,
               },
               {
-                name: "Strawberry Tart",
-                category: "Pastry",
-                price: 7.99,
+                name: "Rasmalai",
+                category: "Milk-based",
+                price: 199,
               },
               {
-                name: "Vanilla Cupcake",
-                category: "Cake",
-                price: 3.99,
+                name: "Kaju Katli",
+                category: "Dry Fruit",
+                price: 249,
               },
             ].map((sweet) => (
               <Card key={sweet.name} clickable>
@@ -55,7 +66,7 @@ export default function HomePage() {
                   <p className="text-sm text-neutral-600">{sweet.category}</p>
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-xl font-bold text-primary-600">
-                      ${sweet.price.toFixed(2)}
+                      {formatPrice(sweet.price)}
                     </span>
                     <Button variant="primary" className="px-3 py-1 text-sm">
                       Add to Cart
@@ -70,9 +81,9 @@ export default function HomePage() {
         {/* Info Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { title: "Fresh Ingredients", desc: "Made with the finest ingredients" },
-            { title: "Fast Delivery", desc: "Quick and reliable shipping" },
-            { title: "Customer Support", desc: "Available 24/7 for assistance" },
+            { title: "Made in Small Batches", desc: "Hand-rolled, slow-cooked mithai with desi ghee and premium nuts." },
+            { title: "Pan-India Delivery", desc: "Carefully packed to arrive fresh for every festival and celebration." },
+            { title: "Support in English & Hindi", desc: "Talk to our team for custom boxes and bulk gifting." },
           ].map((item) => (
             <Card key={item.title}>
               <div className="text-center space-y-3">

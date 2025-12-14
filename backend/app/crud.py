@@ -124,3 +124,28 @@ def restock_sweet(db: Session, sweet_id: int, quantity: int):
     db.commit()
     db.refresh(sweet)
     return sweet, None
+
+
+def update_sweet_price(db: Session, sweet_id: int, price: float):
+    """
+    Update a sweet's price. Returns (sweet, error) where error can be "not_found".
+    """
+    sweet = db.query(models.Sweet).filter(models.Sweet.id == sweet_id).with_for_update().first()
+    if not sweet:
+        return None, "not_found"
+    sweet.price = price
+    db.commit()
+    db.refresh(sweet)
+    return sweet, None
+
+
+def delete_sweet(db: Session, sweet_id: int):
+    """
+    Delete a sweet by id. Returns (True, None) on success or (False, "not_found").
+    """
+    sweet = db.query(models.Sweet).filter(models.Sweet.id == sweet_id).first()
+    if not sweet:
+        return False, "not_found"
+    db.delete(sweet)
+    db.commit()
+    return True, None

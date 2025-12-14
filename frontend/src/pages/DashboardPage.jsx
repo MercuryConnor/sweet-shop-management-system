@@ -1,14 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { useLocation } from "react-router-dom"
 import { Container, Button, Input, SweetCard, SkeletonCard, Section } from "../components"
 import { sweetsService } from "../services"
 import { useToast } from "../hooks"
 import { formatPrice } from "../utils"
+
+const sweetNameMap = {
+  "chocolate truffle": { name: "Gulab Jamun", category: "Traditional" },
+  "vanilla cupcake": { name: "Rasmalai", category: "Milk-based" },
+  "strawberry tart": { name: "Kaju Katli", category: "Dry Fruit" },
+  brownies: { name: "Mysore Pak", category: "Traditional" },
+  "caramel sauce": { name: "Ghee Mysore Pak", category: "Festival Special" },
+}
+
+const indianizeSweet = (sweet) => {
+  const key = sweet?.name?.toLowerCase()
+  const mapped = key && sweetNameMap[key]
+  if (!mapped) return sweet
+  return { ...sweet, name: mapped.name, category: mapped.category }
+}
 
 /**
  * DashboardPage - Sweet browsing and purchasing UI
  */
 export default function DashboardPage() {
   const toast = useToast()
+  const location = useLocation()
+  const productsRef = useRef(null)
+  const hasAutoScrolled = useRef(false)
   const [sweets, setSweets] = useState([])
   const [filteredSweets, setFilteredSweets] = useState([])
   const [categories, setCategories] = useState([])
@@ -37,9 +56,12 @@ export default function DashboardPage() {
     setError(null)
     try {
       const data = await sweetsService.fetchSweets(0, 100)
-      setSweets(data)
-      const uniqueCategories = [...new Set(data.map((s) => s.category))]
+      const normalized = data.map(indianizeSweet)
+      setSweets(normalized)
+      const uniqueCategories = [...new Set(normalized.map((s) => s.category))]
       setCategories(uniqueCategories.sort())
+      const computedMax = Math.ceil(Math.max(...normalized.map((s) => s.price || 0), 50))
+      setPriceRange([0, computedMax])
     } catch (err) {
       setError(err.message)
       setSweets([])
@@ -85,6 +107,14 @@ export default function DashboardPage() {
   }
 
   const maxPrice = Math.max(...sweets.map((s) => s.price), 50)
+  const sliderMax = Math.ceil(maxPrice || 50)
+
+  useEffect(() => {
+    if (!isLoading && location.state?.scrollTo === "products" && !hasAutoScrolled.current) {
+      productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      hasAutoScrolled.current = true
+    }
+  }, [isLoading, location.state])
 
   return (
     <Container size="xl">
@@ -134,31 +164,35 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="space-y-3">
-            <label className="text-sm font-medium text-neutral-700 block">
-              Price Range: <span className="text-primary-600 font-semibold">{formatPrice(priceRange[0])} – {formatPrice(priceRange[1])}</span>
-            </label>
+            <div className="flex items-center justify-between text-sm text-neutral-600">
+              <span>Min: {formatPrice(0)}</span>
+              <span className="font-semibold text-primary-700">{formatPrice(priceRange[0])} – {formatPrice(priceRange[1])}</span>
+              <span>Max: {formatPrice(sliderMax)}</span>
+            </div>
             <div className="flex gap-4 items-center">
               <input
                 type="range"
                 min="0"
-                max={Math.ceil(maxPrice)}
+                max={sliderMax}
                 value={priceRange[0]}
                 onChange={(e) => {
                   const newMin = Math.min(Number(e.target.value), priceRange[1])
                   setPriceRange([newMin, priceRange[1]])
                 }}
-                className="flex-1 h-2.5 bg-primary-100 rounded-full appearance-none cursor-pointer accent-primary-600"
+                aria-label="Minimum price"
+                className="flex-1 h-2.5 bg-primary-100 rounded-full appearance-none cursor-pointer accent-primary-600 range-thumb-lg"
               />
               <input
                 type="range"
                 min="0"
-                max={Math.ceil(maxPrice)}
+                max={sliderMax}
                 value={priceRange[1]}
                 onChange={(e) => {
                   const newMax = Math.max(Number(e.target.value), priceRange[0])
                   setPriceRange([priceRange[0], newMax])
                 }}
-                className="flex-1 h-2.5 bg-primary-100 rounded-full appearance-none cursor-pointer accent-primary-600"
+                aria-label="Maximum price"
+                className="flex-1 h-2.5 bg-primary-100 rounded-full appearance-none cursor-pointer accent-primary-600 range-thumb-lg"
               />
             </div>
           </div>
@@ -181,6 +215,8 @@ export default function DashboardPage() {
             Showing <span className="text-primary-700 font-bold">{filteredSweets.length}</span> of <span className="text-neutral-700 font-bold">{sweets.length}</span> sweets
           </div>
         )}
+
+        <div ref={productsRef} />
 
         {isLoading ? (
           <Section title="Products" subtitle="Loading...">

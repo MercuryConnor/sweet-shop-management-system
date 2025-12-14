@@ -3,3 +3,23 @@
 @tailwind utilities;
 
 html, body, #root { height: 100%; }
+
+/* Larger range slider thumb for better usability */
+.range-thumb-lg::-webkit-slider-thumb {
+	height: 18px;
+	width: 18px;
+	border-radius: 9999px;
+	background: #7c3aed;
+	cursor: pointer;
+	margin-top: -7px;
+	border: 2px solid #f3e8ff;
+}
+
+.range-thumb-lg::-moz-range-thumb {
+	height: 18px;
+	width: 18px;
+	border-radius: 9999px;
+	background: #7c3aed;
+	cursor: pointer;
+	border: 2px solid #f3e8ff;
+}
