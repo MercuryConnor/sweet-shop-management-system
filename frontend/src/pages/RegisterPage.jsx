@@ -154,13 +154,9 @@ export default function RegisterPage() {
               >
                 Sign in here
               </Link>
-            </p>
+           </p>
           </div>
         </Card>
-      </div>
-    </Container>
-  )
-}
       </div>
     </Container>
   )
