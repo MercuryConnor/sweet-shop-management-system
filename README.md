@@ -208,8 +208,7 @@ This mirrors how modern engineering teams:
 
 ## 📸 Screenshots & UI Walkthrough
 
-This section highlights the key user-facing flows of the Sweet Shop Management System.
-Screenshots can be added directly to the repository to visually demonstrate functionality.
+This section highlights the key user-facing flows of the **Sweet Shop Management System**. Screenshots visually demonstrate functionality, usability, and role-based access across the application.
 
 > 📌 **Tip:** Place screenshots inside a `/screenshots` folder at the root of the repository and reference them below.
 
@@ -218,28 +217,95 @@ Screenshots can be added directly to the repository to visually demonstrate func
 ### 🏠 Home Page
 
 **Purpose**
-- Introduces the application
-- Highlights features and value proposition
-- Entry point for users to explore sweets or log in
+- Introduces the application and its value proposition
+- Serves as the entry point for new and returning users
+- Guides users toward browsing sweets or authentication
 
 **Key Elements**
-- Hero section with call-to-action
-- “Browse Sweets” button linking to dashboard
-- Navigation to Login / Register
-- Footer with About, Support, Contact links
+- Hero section with a clear call-to-action
+- “Browse Sweets” button linking to the user dashboard
+- Navigation links to Login and Register
+- Footer with About, Support, and Contact links
 
 **Screenshot**
-```md
+
 ![Home Page](./screenshots/homepage.png)
+
+---
+
+### 📊 User Dashboard
+
+**Purpose**
+- Allows authenticated users to browse available sweets
+- Acts as the primary purchasing interface
+
+**Key Elements**
+- Grid/list view of sweets with prices in INR (₹)
+- Quantity selection controls
+- Real-time stock visibility
+- Purchase action with immediate inventory updates
+
+**Screenshot**
+
 ![User Dashboard](./screenshots/dashboard.png)
-![Login Page](./screenshots/login.png)
+
+---
+
+### 🔐 Authentication Pages
+
+**Purpose**
+- Enable secure user onboarding and login
+- Enforce role-based access after authentication
+
+**Key Elements**
+- User registration form with validation
+- Login form with JWT-based authentication
+- Automatic redirection based on user role (admin vs user)
+
+**Screenshots**
+
+![Login Page](./screenshots/login.png)  
 ![Register Page](./screenshots/register.png)
+
+---
+
+### 🛠️ Admin Dashboard
+
+**Purpose**
+- Provides administrators full control over inventory
+- Demonstrates role-based access enforcement
+
+**Key Elements**
+- Add new sweets to inventory
+- Restock existing items
+- Inline price updates
+- Safe deletion of sweets
+- Inventory health overview
+
+**Screenshot**
+
 ![Admin Dashboard](./screenshots/admin-dashboard.png)
-![About Page](./screenshots/about.png)
-![Support Page](./screenshots/support.png)
+
+---
+
+### ℹ️ Informational Pages
+
+**Purpose**
+- Improve user trust and usability
+- Provide basic informational and support content
+
+**Key Elements**
+- About page describing the platform
+- Support page for user assistance
+- Contact page for queries or feedback
+
+**Screenshots**
+
+![About Page](./screenshots/about.png)  
+![Support Page](./screenshots/support.png)  
 ![Contact Page](./screenshots/contact.png)
 
-```
+---
 
 ## 🚀 Deployment & Environment Details
 
