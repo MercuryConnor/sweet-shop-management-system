@@ -14,7 +14,9 @@ This project demonstrates **real-world system design**, including authentication
 
 ### Backend API (Render)
 🔗 https://sweet-shop-management-system-6tyn.onrender.com  
-📘 Swagger Docs: https://sweet-shop-management-system-6tyn.onrender.com/docs
+
+📘 Swagger Docs:
+https://sweet-shop-management-system-6tyn.onrender.com/docs
 
 ---
 
